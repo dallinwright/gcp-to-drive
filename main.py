@@ -6,16 +6,12 @@ from google.cloud import storage
 from googleapiclient import discovery
 from googleapiclient.http import MediaFileUpload
 
+# Run beforehand this command
+# gcloud storage ls -r gs://test-bucket-99099099/ | grep -i "mp3" > files.txt
 BUCKET = "gs://test-bucket-99099099/"
 FOLDER = "/"
 EXTENSION = ".mp3"
 INPUT_FILE = "files.txt"
-
-import fileinput
-import sys, os
-
-
-
 
 
 def upload_to_drive(local_path, remote_path):
@@ -61,15 +57,20 @@ def drive_upload(event, context):
 def main():
     lines = []
 
+    # Read in the file, each individual line is an element in the list called "lines"
     with open(INPUT_FILE) as file:
         lines = [line.rstrip() for line in file]
 
+    # Index stores where we are in the list as we loop, think of it as a counter, as we process one line we
+    # say ok we are done, and move to the next line.
     index = 0
 
+    # While there are still lines left to process, continue the program
     while len(lines) > 0:
         line = lines[0]
         print(line)
 
+        # Keeps track and removes lines as they are processed. If the program dies, it can start from where it left off.
         lines.pop(0)
         with open('processed.txt', 'w') as f:
             f.writelines(line + '\n' for line in lines)
