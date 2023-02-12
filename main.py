@@ -9,7 +9,7 @@ from googleapiclient.http import MediaFileUpload
 # Run beforehand this command
 # gcloud storage ls -r gs://test-bucket-99099099/ | grep -i "mp3" > files.txt
 BUCKET = "test-bucket-99099099"
-FOLDER = "/"
+BUCKET_FOLDER = "/"
 EXTENSION = ".mp3"
 INPUT_FILE = "files.txt"
 
@@ -25,20 +25,33 @@ def upload_to_drive(local_path, remote_path):
     print(response)
 
 
-def download_file_from_gcs(bucket, key):
-    print("Downloading key: {} from bucket: {}".format(key, bucket))
+def download_blob(bucket_name, source_blob_name, destination_file_name):
+    """Downloads a blob from the bucket."""
+    # The ID of your GCS bucket
+    # bucket_name = "your-bucket-name"
 
-    client = storage.Client()
+    # The ID of your GCS object
+    # source_blob_name = "storage-object-name"
 
-    source_bucket = client.bucket(bucket)
+    # The path to which the file should be downloaded
+    # destination_file_name = "local/path/to/file"
 
-    blob_object = source_bucket.blob(key)
+    storage_client = storage.Client()
 
-    tmpdir = "./files/{}".format(key.split("/")[-1])
+    bucket = storage_client.bucket(bucket_name)
 
-    blob_object.download_to_filename(tmpdir)
+    # Construct a client side representation of a blob.
+    # Note `Bucket.blob` differs from `Bucket.get_blob` as it doesn't retrieve
+    # any content from Google Cloud Storage. As we don't need additional data,
+    # using `Bucket.blob` is preferred here.
+    blob = bucket.blob(source_blob_name)
+    blob.download_to_filename(destination_file_name)
 
-    return tmpdir
+    print(
+        "Downloaded storage object {} from bucket {} to local file {}.".format(
+            source_blob_name, bucket_name, destination_file_name
+        )
+    )
 
 
 def drive_upload(event, context):
@@ -70,15 +83,20 @@ def main():
     # Index stores where we are in the list as we loop, think of it as a counter, as we process one line we
     # say ok we are done, and move to the next line.
     index = 0
+    initial_length = len(lines)
 
     # While there are still lines left to process, continue the program
     while len(lines) > 0:
         line = lines[0]
 
-        filename = line.split("/")[-1]
-        downloaded_filename = download_file_from_gcs(BUCKET, filename)
+        # Helpful progress display
+        print(f"Processing line: {index} of {initial_length} ({round((index / initial_length) * 100, 2)}%)")
 
-        print(downloaded_filename)
+        filename = line.split("/")[-1]
+        os.mkdir(f"./files")
+        destination = f"./files/{filename}"
+
+        download_blob(BUCKET, line, destination)
 
         # Keeps track and removes lines as they are processed. If the program dies, it can start from where it left off.
         lines.pop(0)
