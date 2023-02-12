@@ -8,7 +8,7 @@ from googleapiclient.http import MediaFileUpload
 
 # Run beforehand this command
 # gcloud storage ls -r gs://test-bucket-99099099/ | grep -i "mp3" > files.txt
-BUCKET = "gs://test-bucket-99099099/"
+BUCKET = "test-bucket-99099099"
 FOLDER = "/"
 EXTENSION = ".mp3"
 INPUT_FILE = "files.txt"
@@ -26,12 +26,18 @@ def upload_to_drive(local_path, remote_path):
 
 
 def download_file_from_gcs(bucket, key):
-    print("Downloading key: {} in bucket: {}".format(key, bucket))
+    print("Downloading key: {} from bucket: {}".format(key, bucket))
+
     client = storage.Client()
+
     source_bucket = client.bucket(bucket)
+
     blob_object = source_bucket.blob(key)
-    tmpdir = "/tmp/file"
+
+    tmpdir = "./files/{}".format(key.split("/")[-1])
+
     blob_object.download_to_filename(tmpdir)
+
     return tmpdir
 
 
@@ -68,7 +74,11 @@ def main():
     # While there are still lines left to process, continue the program
     while len(lines) > 0:
         line = lines[0]
-        print(line)
+
+        filename = line.split("/")[-1]
+        downloaded_filename = download_file_from_gcs(BUCKET, filename)
+
+        print(downloaded_filename)
 
         # Keeps track and removes lines as they are processed. If the program dies, it can start from where it left off.
         lines.pop(0)
