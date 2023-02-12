@@ -1,0 +1,3 @@
+gs://test-bucket-99099099/data/somefolder/sotextedata.mp3
+gs://test-bucket-99099099/data/somefolder/sotexxxxxtedata.mp3
+gs://test-bucket-99099099/data/somefolder/sotestedata.mp3
