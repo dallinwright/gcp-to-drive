@@ -71,8 +71,15 @@ def main():
         try:
             # Download the file
             filename = line.split("/")[-1]
-            destination = f"./files/{filename}"
-            download_blob(BUCKET, line, destination)
+
+            # using partition()
+            # String till Substring
+            file_path = line.partition(filename)[0]
+
+            if not os.path.exists(file_path):
+                os.mkdir(file_path)
+
+            download_blob(BUCKET, line, line)
         except Exception as e:
             print(f"Error downloading file: {line}")
             print(e)
