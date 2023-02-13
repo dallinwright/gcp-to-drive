@@ -1,4 +1,5 @@
 from google.cloud import storage
+import google.auth
 
 # Run beforehand this command
 # gcloud storage ls -r gs://test-bucket-99099099/ | grep -i "mp3" > files.txt
@@ -6,10 +7,6 @@ BUCKET = "test-bucket-99099099"
 BUCKET_FOLDER = "/"
 EXTENSION = ".mp3"
 INPUT_FILE = "files.txt"
-
-import google.auth
-
-credentials, project = google.auth.default()
 
 
 def download_blob(source_blob_name, destination_file_name):
@@ -41,25 +38,6 @@ def download_blob(source_blob_name, destination_file_name):
     )
 
 
-# def drive_upload(event, context):
-#     try:
-#         if event["name"][-1] == "/":
-#             print("Folder: {} is created in the bucket: {}".format(
-#                 event["name"],
-#                 event["bucket"]
-#             ))
-#             return
-#
-#         # Downloading file from GCS
-#         local_path = download_file_from_gcs(event["bucket"], event["name"])
-#
-#         # Uploading the file to drive
-#         upload_to_drive(local_path, event["name"])
-#
-#     except Exception as e:
-#         print(traceback.format_exc())
-
-
 def main():
     lines = []
 
@@ -74,16 +52,18 @@ def main():
 
     # While there are still lines left to process, continue the program
     while len(lines) > 0:
+        # Grab the first line in the list to process
         line = lines[0]
 
+        # Remove the bucket name from the line, so we can just use the filename
         line = line.replace(f"gs://{BUCKET}/", "")
 
         # Helpful progress display
         print(f"Processing line: {index} of {initial_length} ({round((index / initial_length) * 100, 2)}%)")
 
+        # Download the file
         filename = line.split("/")[-1]
         destination = f"./files/{filename}"
-
         download_blob(line, destination)
 
         # Keeps track and removes lines as they are processed. If the program dies, it can start from where it left off.
