@@ -1,23 +1,16 @@
 import os.path
 
-import google
-from google.cloud import storage
-
 import google.auth
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-from googleapiclient.http import MediaFileUpload
-
+from google.cloud import storage
 
 # Run beforehand this command
 # gcloud storage ls -r gs://test-bucket-99099099/ | grep -i "mp3" > files.txt
 BUCKET = "test-bucket-99099099"
 BUCKET_FOLDER = "/"
-LOCAL_DESTINATION_FOLDER = "./files/"
+LOCAL_DESTINATION_FOLDER = "./files"
 INPUT_FILE = "files.txt"
 
-
-# Configure auth inside the script
+# Configure auth inside the script, this will use the local user's credentials
 credentials, project = google.auth.default()
 
 
@@ -52,12 +45,16 @@ def download_blob(bucket_name, source_blob_name, destination_file_name):
 
 
 def main():
+    # Needed for a code health standpoint, as we are assiging the lines to
+    # process below. This is just a placeholder.
     lines = []
 
+    # Make sure the output path exists, if not create it
     if not os.path.exists(LOCAL_DESTINATION_FOLDER):
         os.mkdir(LOCAL_DESTINATION_FOLDER)
 
-    # Read in the file, each individual line is an element in the list called "lines"
+    # Read in the file, each individual line is an element in the list called
+    # "lines"
     with open(INPUT_FILE) as file:
         lines = [line.rstrip() for line in file]
 
@@ -66,36 +63,53 @@ def main():
     index = 0
     initial_length = len(lines)
 
+    print(f"Total lines to process: {initial_length}")
+
     # While there are still lines left to process, continue the program
     while len(lines) > 0:
         # Grab the first line in the list to process
-        line = lines[0]
-        print(f"Processing line: {index} of {initial_length} ({round((index / initial_length) * 100, 2)}%)")
+        file_to_download = lines[0]
+        print(
+            f"Processing line: {index} of {initial_length} ({round((index / initial_length) * 100, 2)}%)")
 
         # Remove the bucket name from the line, so we can just use the filename
-        line = line.replace(f"gs://{BUCKET}/", "")
+        file_to_download = file_to_download.replace(f"gs://{BUCKET}/", "")
 
         try:
-            # Download the file
-            filename = line.split("/")[-1]
+            # Get just the filename
+            filename = file_to_download.split("/")[-1]
 
             # using partition()
-            # String till Substring
-            file_path = f"{line.partition(filename)[0]}"
+            # String till Substring, this allows us to conserve the path
+            file_path = f"{LOCAL_DESTINATION_FOLDER}/{file_to_download.partition(filename)[0]}"
 
             if not os.path.exists(file_path):
                 os.mkdir(file_path)
 
-            download_blob(BUCKET, line, line)
-        except Exception as e:
-            print(f"Error downloading file: {line}")
-            print(e)
-        # upload to google drive
+            destination_file_name = f"{LOCAL_DESTINATION_FOLDER}/{file_to_download}"
 
-        # Keeps track and removes lines as they are processed. If the program dies, it can start from where it left off.
-        lines.pop(0)
-        with open('processed.txt', 'w') as f:
-            f.writelines(line + '\n' for line in lines)
+            print(
+                f"Downloading file: {file_to_download} to {destination_file_name}...")
+
+            download_blob(BUCKET, file_to_download, destination_file_name)
+
+            print(
+                f"Downloaded file: {file_to_download} to {destination_file_name}")
+        except Exception as e:
+            print(f"Error downloading file: {file_to_download}")
+            print(e)
+
+        # Keeps track and removes lines as they are processed. If the program
+        # dies, it can start from where it left off.
+        try:
+            lines.pop(0)
+            with open('files.txt', 'w') as f:
+                f.writelines(line + '\n' for line in lines)
+
+            print(f"Removed line: {file_to_download}")
+        except Exception as e:
+            print(f"Error removing line: {file_to_download}")
+            print(e)
 
         index += 1
 
@@ -103,5 +117,3 @@ def main():
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     main()
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/

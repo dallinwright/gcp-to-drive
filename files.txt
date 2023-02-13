@@ -1,2 +1,1 @@
-gs://test-bucket-99099099/data/dockerfile.mp3
 gs://test-bucket-99099099/data/somefolder/somedata.mp3
