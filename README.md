@@ -1,10 +1,15 @@
 # GCP Storage Bucket Downloader
 
-## Pre-requisites
+## Prerequisites
 
 1. Python 3.6+
 2. Google Cloud CLI utility installed and configured
 
+### Install the python dependencies
+
+Open a terminal and change directory to the root of this project. Then run the following command:
+
+`pip install -r requirements.txt`
 
 First, to prepare a total list of files to process in the format needed by the script, running the following command from
 the same directory as the script:
