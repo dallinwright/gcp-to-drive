@@ -98,6 +98,7 @@ def main():
         except Exception as e:
             print(f"Error downloading file: {file_to_download}")
             print(e)
+            continue
 
         # Keeps track and removes lines as they are processed. If the program
         # dies, it can start from where it left off.
