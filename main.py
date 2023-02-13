@@ -68,12 +68,12 @@ def main():
     # While there are still lines left to process, continue the program
     while len(lines) > 0:
         # Grab the first line in the list to process
-        file_to_download = lines[0]
+        raw_file_to_download = lines[0]
         print(
             f"Processing line: {index} of {initial_length} ({round((index / initial_length) * 100, 2)}%)")
 
         # Remove the bucket name from the line, so we can just use the filename
-        file_to_download = file_to_download.replace(f"gs://{BUCKET}/", "")
+        file_to_download = raw_file_to_download.replace(f"gs://{BUCKET}/", "")
 
         try:
             # Get just the filename
@@ -98,7 +98,10 @@ def main():
         except Exception as e:
             print(f"Error downloading file: {file_to_download}")
             print(e)
-            continue
+            with open('failed.txt', 'w') as f:
+                f.writelines(raw_file_to_download + '\n')
+
+        print(f"Removed line: {file_to_download}")
 
         # Keeps track and removes lines as they are processed. If the program
         # dies, it can start from where it left off.
