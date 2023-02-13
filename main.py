@@ -1,5 +1,6 @@
 import os.path
 
+import google
 from google.cloud import storage
 
 # Run beforehand this command
@@ -10,8 +11,12 @@ DESTINATION_FOLDER = "./files/"
 EXTENSION = ".mp3"
 INPUT_FILE = "files.txt"
 
+# Configure auth inside the script
+credentials, project = google.auth.default()
 
-def download_blob(source_blob_name, destination_file_name):
+
+# Code snipper from GCP
+def download_blob(bucket_name, source_blob_name, destination_file_name):
     """Downloads a blob from the bucket."""
     # The ID of your GCS bucket
     # bucket_name = "your-bucket-name"
@@ -24,7 +29,7 @@ def download_blob(source_blob_name, destination_file_name):
 
     storage_client = storage.Client()
 
-    bucket = storage_client.bucket(BUCKET)
+    bucket = storage_client.bucket(bucket_name)
 
     # Construct a client side representation of a blob.
     # Note `Bucket.blob` differs from `Bucket.get_blob` as it doesn't retrieve
@@ -35,10 +40,9 @@ def download_blob(source_blob_name, destination_file_name):
 
     print(
         "Downloaded storage object {} from bucket {} to local file {}.".format(
-            source_blob_name, BUCKET, destination_file_name
+            source_blob_name, bucket_name, destination_file_name
         )
     )
-
 
 def main():
     lines = []
@@ -64,13 +68,15 @@ def main():
         # Remove the bucket name from the line, so we can just use the filename
         line = line.replace(f"gs://{BUCKET}/", "")
 
-        # Download the file
-        filename = line.split("/")[-1]
-        destination = f"./files/{filename}"
-        download_blob(line, destination)
-
+        try:
+            # Download the file
+            filename = line.split("/")[-1]
+            destination = f"./files/{filename}"
+            download_blob(BUCKET, line, destination)
+        except Exception as e:
+            print(f"Error downloading file: {line}")
+            print(e)
         # upload to google drive
-
 
         # Keeps track and removes lines as they are processed. If the program dies, it can start from where it left off.
         lines.pop(0)
