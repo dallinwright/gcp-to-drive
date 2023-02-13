@@ -7,7 +7,7 @@ from google.cloud import storage
 # gcloud storage ls -r gs://test-bucket-99099099/ | grep -i "mp3" > files.txt
 BUCKET = "test-bucket-99099099"
 BUCKET_FOLDER = "/"
-DESTINATION_FOLDER = "./files/"
+LOCAL_DESTINATION_FOLDER = "./files/"
 EXTENSION = ".mp3"
 INPUT_FILE = "files.txt"
 
@@ -44,11 +44,12 @@ def download_blob(bucket_name, source_blob_name, destination_file_name):
         )
     )
 
+
 def main():
     lines = []
 
-    if not os.path.exists(DESTINATION_FOLDER):
-        os.mkdir(DESTINATION_FOLDER)
+    if not os.path.exists(LOCAL_DESTINATION_FOLDER):
+        os.mkdir(LOCAL_DESTINATION_FOLDER)
 
     # Read in the file, each individual line is an element in the list called "lines"
     with open(INPUT_FILE) as file:
@@ -74,7 +75,7 @@ def main():
 
             # using partition()
             # String till Substring
-            file_path = line.partition(filename)[0]
+            file_path = f"{line.partition(filename)[0]}"
 
             if not os.path.exists(file_path):
                 os.mkdir(file_path)
