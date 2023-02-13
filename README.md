@@ -15,7 +15,7 @@ First, to prepare a total list of files to process in the format needed by the s
 the same directory as the script:
 
 ```bash
-gcloud storage ls -r gs://test-bucket-99099099/ | grep -i "mp3" > files.txt
+gcloud storage ls -r gs://test-bucket-99099099/ > files.txt
 ```
 
 # Running the script
